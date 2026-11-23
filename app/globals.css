@@ -1,26 +1,91 @@
 @import "tailwindcss";
 
+/* laptop-height screens: the hero drops its paragraph so the headline block can't overflow into the nav */
+@custom-variant short (@media (max-height: 780px) and (min-width: 768px));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ocean: url("https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260831_224622_4eeb9d43-9e46-4483-9530-1eb4ef4c942d.png&w=1920&q=85");
 }
 
+/* Tailwind 4 equivalent of `fontFamily: { geist: ['Geist', 'sans-serif'] }` */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-geist: var(--font-geist-sans), "Geist", sans-serif;
+  --color-ink: #0b0f12;
+  --color-sea: #0b6b8a;
+  --color-foam: #f2f7f9;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* In @layer base so it cannot override Tailwind's padding/margin utilities (unlayered CSS would). */
+@layer base {
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #fff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* hero motion */
+@keyframes slowZoom { from { transform: scale(1.12); } to { transform: scale(1); } }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes orbit { to { transform: rotate(360deg); } }
+
+/* feature panels */
+@keyframes wave { to { background-position-x: -1200px; } }
+@keyframes drift { from { transform: translateX(-80px); } to { transform: translateX(calc(100cqw + 80px)); } }
+@keyframes wisp {
+  0% { transform: translateY(30px) scaleX(.9); opacity: 0; }
+  20% { opacity: .55; }
+  100% { transform: translateY(-190px) scaleX(1.3); opacity: 0; }
+}
+@keyframes sheen { 0%, 55% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+@keyframes swim { from { transform: translateX(-170px); opacity: 0; } 25% { opacity: 1; } to { transform: translateX(0); opacity: 1; } }
+
+/* looping wave band: one 1200px sine tile, scrolled sideways */
+.wave { background-repeat: repeat-x; background-position: 0 100%; background-size: 1200px 100%; animation: wave 16s linear infinite; }
+.wave-a { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0 60C200 20 400 20 600 60S1000 100 1200 60V120H0Z' fill='%237fd7f2' fill-opacity='.22'/%3E%3C/svg%3E"); }
+.wave-b { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0 60C200 20 400 20 600 60S1000 100 1200 60V120H0Z' fill='%237fd7f2' fill-opacity='.12'/%3E%3C/svg%3E"); animation-duration: 26s; animation-direction: reverse; }
+
+/* small fish crossing a panel; --x is where it rests when motion is off */
+.drift { position: absolute; left: 0; animation: drift var(--dur, 20s) linear infinite; animation-delay: var(--del, 0s); }
+.wisp { position: absolute; bottom: 0; filter: blur(3px); animation: wisp var(--dur, 7s) ease-in-out infinite; animation-delay: var(--del, 0s); }
+
+/* gold sheen sweeping across a panel */
+.sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, .5) 50%, transparent 62%);
+  animation: sheen 6s ease-in-out infinite;
+}
+
+/* ocean photo with a navy fallback so white text on it stays readable while it loads */
+.ocean {
+  background-color: #0b2a3a;
+  background-image: var(--ocean);
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+/* scroll reveal: JS adds .reveal-hidden only to blocks that start below the fold */
+.reveal { transition: opacity .9s ease, transform .9s cubic-bezier(.16, 1, .3, 1); }
+.reveal-hidden { opacity: 0; transform: translateY(28px); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+  .reveal-hidden { opacity: 1; transform: none; }
+  .drift { left: var(--x, 20%); }
 }
